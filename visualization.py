@@ -3,16 +3,28 @@ import plotly.graph_objects as go
 import pandas as pd
 from typing import Tuple
 
-def create_sankey_chart() -> go.Figure:
+def create_sankey_chart(df, threshold: int,window) -> go.Figure:
     """Create the Sankey chart showing patient conversion flow."""
+
+    # filter for category 1
+    df_cat1 = df[df['Category'].astype(str) == '1']
+
+    # calculate key metrics
+    x_cat1 = len(df_cat1)
+    x_booked = len(df[~df_cat1['Appointment Date'].isnull()])
+    x_unbooked = x_cat1-x_booked
+    x_overthreshold = len(df_cat1[df_cat1[window] > threshold])
+    x_underthreshold = x_booked - x_overthreshold
+
+
     fig = go.Figure(go.Sankey(
         node = dict(
-            label = ["Cat1 patients","Booked","Unbooked","Awaiting booking","Patient returned"],
+            label = ["Cat1 patients","Booked","Unbooked",f"Over {threshold} days",f"Under {threshold} days"],
         ),
         link = dict(
-            source = [0, 0, 2, 2], 
+            source = [0, 0, 1, 1], 
             target = [1, 2, 3, 4],
-            value = [85, 23, 15, 8],
+            value = [x_booked, x_unbooked, x_overthreshold, x_underthreshold],
             customdata = ["78.7%","21.3%","13.9%","7.4%"],
             hovertemplate='<br />%{value} patients' +
                 '<br />%{customdata} of total cat1 patients<extra></extra>',

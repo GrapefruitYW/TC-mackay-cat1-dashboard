@@ -16,11 +16,11 @@ def load_data(uploaded_file) -> Optional[pd.DataFrame]:
 
 def process_data(df: pd.DataFrame) -> pd.DataFrame:
     """Process and clean the patient data."""
-    # Filter for Category 3
+    # Filter for Category 1
     if 'Category' in df.columns:
-        df = df[df['Category'].astype(str) == '3']
+        df = df[df['Category'].astype(str) == '1']
         if df.empty:
-            st.warning("No data found for Category 3. Showing all data instead.")
+            st.warning("No data found for Category 1. Showing all data instead.")
             df = pd.read_csv(uploaded_file, parse_dates=['Creation Date', 'Appointment Date', 'Referrer Expiry Date'])
     
     # Drop unnecessary columns
@@ -41,8 +41,10 @@ def process_data(df: pd.DataFrame) -> pd.DataFrame:
 
     
     # Calculate window times
-    # Calculate window times in days
-    df['Booking window'] = (df['Appointment Date'] - df['Creation Date']).dt.days
+    # Calculate window times in days using floor for precise day count
+    df['Booking window'] = (df['Appointment Date'].dt.floor('D') - df['Creation Date'].dt.floor('D')).dt.days
+
+    
 
     
     # Validate window calculations
